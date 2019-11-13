@@ -2,6 +2,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     kotlin("jvm") version "1.3.50"
+    id("org.jetbrains.kotlin.plugin.serialization") version "1.3.50"
 }
 
 repositories {
@@ -11,9 +12,7 @@ repositories {
 
 dependencies {
     implementation(kotlin("stdlib-jdk8"))
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.2")
-    implementation("org.jetbrains.exposed:exposed:0.17.7")
-    implementation("mysql:mysql-connector-java:5.1.37")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime:0.13.0")
 }
 
 sourceSets {

@@ -38,6 +38,10 @@ fun main() {
 
     println(2352.toBigInteger().noOfPermutations())
 
+    (1..10).forEach {
+        print("\rawesome $it")
+        Thread.sleep(300)
+    }
 }
 
 const val secondsInMinute = 60L
@@ -81,21 +85,12 @@ fun Int.printPrimeFactors() {
 
 fun BigInteger.factorial(): BigInteger = (ONE..this).mult()
 
-fun BigInteger.noOfPermutations(): BigInteger {
-    val collectMaps = findPrimeFactors().primeCounts.findCollectMaps()
-    return collectMaps.map { it.noOfPermutations() }.sum()
-}
-
-fun HashMap<Int, Int>.noOfPermutations(): BigInteger {
-    return this.values.sum().toBigInteger().factorial() /
-            this.values.filter { it != 0 }.map { it.toBigInteger().factorial() }.mult()
-}
-
-
-fun HashMap<Int, Int>.findCollectMaps(sort: Boolean = false): List<HashMap<Int, Int>> {
+fun HashMap<Int, Int>.findCollectMaps(sort: Boolean = false): List<java.util.HashMap<Int, Int>> {
     val listOfCollectMaps: ArrayList<HashMap<Int, Int>> = ArrayList()
     collectMorePrimesToCollectMap(this, HashMap(), 9, listOfCollectMaps)
-    return if (sort) listOfCollectMaps.sortedBy { it.noOfPermutations() } else listOfCollectMaps
+    return if (sort)
+        listOfCollectMaps.sortedBy { it.noOfPermutations() }
+    else listOfCollectMaps
 }
 
 fun collectMorePrimesToCollectMap(map: HashMap<Int, Int>, collectMap: HashMap<Int, Int>, numberToExtract: Int, listOfCollectMaps: ArrayList<HashMap<Int, Int>>) {
