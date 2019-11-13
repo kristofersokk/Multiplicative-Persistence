@@ -13,7 +13,7 @@ class JsonHandler {
     private val file = File("computedData.json")
 
     init {
-        json = Json(JsonConfiguration.Default)
+        json = Json(JsonConfiguration.Default.copy(prettyPrint = false))
         if (file.exists()) {
             val data = file.readText()
             jsonData = Json.parse(JsonData.serializer(), data)

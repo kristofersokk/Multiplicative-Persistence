@@ -7,6 +7,7 @@ import java.text.NumberFormat
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
+import kotlin.streams.toList
 
 const val maxRange = 20
 const val ops = 700000
@@ -23,24 +24,27 @@ fun main() {
     for (i in 2..14) {
         val candidates = candidateList.last()
         val nextCandidates = candidates.getNextCandidates()
-        if (nextCandidates.isEmpty()) {
-
-            return
-        }
         val solutionCount = candidates.noOfPermutations()
-        val nextSolutionCount = nextCandidates.noOfPermutations(true)
         println()
         println("multiplicative persistence level $i:")
         println("solutions : LEN $solutionCount smallest: ${candidates.smallestInNextLayer()}")
         println()
-        println("remaining permutations to iterate in next level: $nextSolutionCount")
-        println(nextSolutionCount.computationDuration(ops))
+        if (nextCandidates.isEmpty())
+            break
+        val nextSolutionCount = nextCandidates.noOfPermutations(true)
+        if (nextSolutionCount == ZERO) {
+            println("all candidates in next level are cached")
+        } else {
+            println("remaining permutations to iterate in next level: $nextSolutionCount")
+            println(nextSolutionCount.computationDuration(ops))
+        }
         candidateList.add(nextCandidates)
         println()
     }
 }
 
-fun Collection<BigInteger>.noOfPermutations(onlyUncomputed: Boolean = false) = this.map { it.noOfPermutations(onlyUncomputed = onlyUncomputed) }.sum()
+fun Collection<BigInteger>.noOfPermutations(onlyUncomputed: Boolean = false) =
+        this.map { it.noOfPermutations(onlyUncomputed = onlyUncomputed) }.sum()
 
 var totalC = 0
 var totalPermsPC: BigInteger = ZERO
@@ -48,13 +52,22 @@ var collectMaps = ArrayList<HashMap<Int, Int>>()
 var countC = 0
 var countPermsPC: BigInteger = ZERO
 var countCM = 0
+var countNextCandidatesSoFar = 0
 var CMProgress = 0.0
 var CProgress = 0.0
 
+fun Collection<BigInteger>.getAllSolutionsInNextLevel(): Collection<BigInteger> {
+    return parallelStream().flatMap {
+        it.findPrimeFactors().primeCounts.findCollectMaps().parallelStream().flatMap {
+            it.permuteToCandidates().parallelStream()
+        }
+    }.distinct().sorted().toList()
+}
 
-fun Collection<BigInteger>.getNextCandidates(): ArrayList<BigInteger> {
+fun Collection<BigInteger>.getNextCandidates(doPrintProgress: Boolean = false): ArrayList<BigInteger> {
     totalC = this.size
     countC = 0
+    countNextCandidatesSoFar = 0
     val result: ArrayList<BigInteger> = ArrayList()
     val candidateList = jsonHandler.jsonData.cache
     forEach {
@@ -73,13 +86,14 @@ fun Collection<BigInteger>.getNextCandidates(): ArrayList<BigInteger> {
             collectMaps.forEach {
                 val cPermsExists = candidate.candidatePerms.any { elem -> elem.collectMap == it }
                 if (!cPermsExists) {
-                    val candidates = it.permuteToCandidates(true)
+                    val candidates = it.permuteToCandidates(true, doPrintProgress)
                     candidate.candidatePerms.add(CandidatePerms(it, candidates))
                     nextCandidates.addAll(candidates)
                     jsonHandler.writeToFile()
                 }
+                countNextCandidatesSoFar = nextCandidates.size
                 countCM++
-                printProgress()
+                if (doPrintProgress) printProgress()
             }
             candidate.nextCandidates = nextCandidates
             jsonHandler.writeToFile()
@@ -92,7 +106,7 @@ fun Collection<BigInteger>.getNextCandidates(): ArrayList<BigInteger> {
 }
 
 fun printProgress() {
-    print("\rCandidates: %${totalC.toString().length}d:$totalC CollectMaps: %${collectMaps.size.toString().length}d:${collectMaps.size} CollectMapProgress: %4s |%-25s|, TotalProgress: %4s |%-25s|"
+    print("\rCandidates: %${totalC.toString().length}d:$totalC,  CollectMaps: %${collectMaps.size.toString().length}d:${collectMaps.size}, CMProgress: %4s |%-25s|, TProgress: %4s |%-25s|, foundNextCandidates: $countNextCandidatesSoFar"
             .format(countC,
                     countCM,
                     NumberFormat.getPercentInstance(Locale.US).format(CMProgress / 100),
@@ -151,16 +165,16 @@ var countPermsPCM: BigInteger = ZERO
 var totalPermsPCM: BigInteger = ZERO
 var lastTimeStamp = System.currentTimeMillis()
 
-fun HashMap<Int, Int>.permuteToCandidates(onlyCorrectNumbers: Boolean = false): ArrayList<BigInteger> {
+fun HashMap<Int, Int>.permuteToCandidates(onlyCorrectNumbers: Boolean = false, doPrintProgress: Boolean = false): ArrayList<BigInteger> {
     resultsOfCM = ArrayList()
     countPermsPCM = ZERO
     totalPermsPCM = this.noOfPermutations()
     lastTimeStamp = System.currentTimeMillis()
-    permute(this, "", onlyCorrectNumbers)
+    permute(this, "", onlyCorrectNumbers, doPrintProgress)
     return resultsOfCM
 }
 
-fun permute(map: HashMap<Int, Int>, str: String = "", onlyCorrectNumbers: Boolean) {
+fun permute(map: HashMap<Int, Int>, str: String = "", onlyCorrectNumbers: Boolean, doPrintProgress: Boolean) {
     if (map.values.sum() <= 0) {
         countPermsPCM++
         countPermsPC++
@@ -171,7 +185,7 @@ fun permute(map: HashMap<Int, Int>, str: String = "", onlyCorrectNumbers: Boolea
 //            lastTimeStamp = curTime
             CMProgress = countPermsPCM percentage totalPermsPCM
             CProgress = countPermsPC percentage totalPermsPC
-            printProgress()
+            if (doPrintProgress) printProgress()
         }
         if (str.isNotEmpty() && str.length >= 2) {
             val value = str.toBigInteger()
@@ -192,7 +206,7 @@ infix fun BigInteger.percentage(b: BigInteger): Double {
 fun modifyMapPermutate(map: HashMap<Int, Int>, str: String, key: Int, onlyCorrectNumbers: Boolean) {
     if (map.getOrDefault(key, 0) >= 1) {
         map.modify(key, -1)
-        permute(map, str + key, onlyCorrectNumbers)
+        permute(map, str + key, onlyCorrectNumbers, true)
         map.modify(key, 1)
     }
 }

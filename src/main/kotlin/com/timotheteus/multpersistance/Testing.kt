@@ -38,10 +38,12 @@ fun main() {
 
     println(2352.toBigInteger().noOfPermutations())
 
-    (1..10).forEach {
-        print("\rawesome $it")
-        Thread.sleep(300)
-    }
+//    (1..10).forEach {
+//        print("\rawesome $it")
+//        Thread.sleep(300)
+//    }
+    println(2352.toBigInteger().findPrimeFactors().primeCounts)
+    println(listOf(2352.toBigInteger()).getAllSolutionsInNextLevel())
 }
 
 const val secondsInMinute = 60L
