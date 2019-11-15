@@ -29,6 +29,7 @@ data class JsonData(
 @Serializable
 data class Candidate @JvmOverloads constructor(
         val candidate: BigInteger,
+        val level: Int,
         val candidatePerms: ArrayList<CandidatePerms> = ArrayList(),
         var nextCandidates: ArrayList<BigInteger> = ArrayList()
 )
@@ -36,6 +37,7 @@ data class Candidate @JvmOverloads constructor(
 @Serializable
 data class CandidatePerms(
         val collectMap: HashMap<Int, Int>,
+        var calculated: Boolean = false,
         var candidates: ArrayList<BigInteger> = ArrayList()
 )
 

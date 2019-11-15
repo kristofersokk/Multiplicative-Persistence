@@ -9,11 +9,10 @@ import java.io.File
 class JsonHandler {
 
     var jsonData: JsonData = JsonData()
-    var json: Json? = null
+    private var json = Json(JsonConfiguration.Default.copy(prettyPrint = false))
     private val file = File("computedData.json")
 
     init {
-        json = Json(JsonConfiguration.Default.copy(prettyPrint = false))
         if (file.exists()) {
             val data = file.readText()
             jsonData = Json.parse(JsonData.serializer(), data)
@@ -23,6 +22,6 @@ class JsonHandler {
     }
 
     fun writeToFile() {
-        file.writeText(json!!.stringify(JsonData.serializer(), jsonData))
+        file.writeText(json.stringify(JsonData.serializer(), jsonData))
     }
 }

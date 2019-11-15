@@ -2,8 +2,6 @@ package com.timotheteus.multpersistance
 
 import java.math.BigInteger
 import java.math.BigInteger.ONE
-import java.math.BigInteger.ZERO
-import kotlin.math.min
 
 fun main() {
     //28224.printPermutations()
@@ -42,9 +40,21 @@ fun main() {
 //        print("\rawesome $it")
 //        Thread.sleep(300)
 //    }
-    println(2352.toBigInteger().findPrimeFactors().primeCounts)
-    println(listOf(2352.toBigInteger()).getAllSolutionsInNextLevel())
+//    println(2352.toBigInteger().findPrimeFactors().primeCounts)
+//    println(listOf(2352.toBigInteger()).getAllSolutionsInNextLevel())
+//    println(query.hasCandidate(438939648.toBigInteger()))
+//    println(query.candidate(438939648.toBigInteger()).nextCandidates)
+
+    val result = HashMap<Int, Int>()
+    result[0] = 2
+    result[1] = 3
+    val result2 = result.deepClone()
+    result2[1] = 4
+    println(result)
+    println(result2)
 }
+
+val query = JsonQuery(JsonHandler())
 
 const val secondsInMinute = 60L
 const val secondsInHour = 60 * secondsInMinute
@@ -62,83 +72,6 @@ fun BigInteger.computationDuration(ops: Int): String {
     val minutes = seconds / secondsInMinute
     seconds %= secondsInMinute
     return "computations will be completed in $years years, $days days, $hours hours, $minutes minutes and $seconds seconds"
-}
-
-fun BigInteger.multiplicativeList(): ArrayList<BigInteger> {
-    val list = ArrayList<BigInteger>()
-    var value = this
-    while (value.toString().length >= 2) {
-        list.add(value)
-        value = value.toString().map {
-            (it.toInt() - 48).toBigInteger()
-        }.mult()
-    }
-    list.add(value)
-    return list
-}
-
-fun Collection<BigInteger>.sum(): BigInteger = this.fold(ZERO) { a, b -> a + b }
-
-fun Collection<BigInteger>.mult(): BigInteger = this.fold(ONE) { a, b -> a * b }
-
-fun Int.printPrimeFactors() {
-    println(this.toBigInteger().findPrimeFactors().primeCounts)
-}
-
-fun BigInteger.factorial(): BigInteger = (ONE..this).mult()
-
-fun HashMap<Int, Int>.findCollectMaps(sort: Boolean = false): List<java.util.HashMap<Int, Int>> {
-    val listOfCollectMaps: ArrayList<HashMap<Int, Int>> = ArrayList()
-    collectMorePrimesToCollectMap(this, HashMap(), 9, listOfCollectMaps)
-    return if (sort)
-        listOfCollectMaps.sortedBy { it.noOfPermutations() }
-    else listOfCollectMaps
-}
-
-fun collectMorePrimesToCollectMap(map: HashMap<Int, Int>, collectMap: HashMap<Int, Int>, numberToExtract: Int, listOfCollectMaps: ArrayList<HashMap<Int, Int>>) {
-    if (numberToExtract > 1) {
-        when (numberToExtract) {
-            9 -> _changeMapNewPermutations(map, collectMap, 3, 2, 9, listOfCollectMaps)
-            8 -> _changeMapNewPermutations(map, collectMap, 2, 3, 8, listOfCollectMaps)
-            7 -> _changeMapNewPermutations(map, collectMap, 7, 1, 7, listOfCollectMaps)
-            6 -> {
-                val min6 = min(map.getOrDefault(2, 0), map.getOrDefault(3, 0))
-                for (i in 0..min6) {
-                    map.modify(2, -i)
-                    map.modify(3, -i)
-                    collectMap[6] = i
-                    collectMorePrimesToCollectMap(map, collectMap, numberToExtract - 1, listOfCollectMaps)
-                    map.modify(2, i)
-                    map.modify(3, i)
-                    collectMap.remove(6)
-                }
-            }
-            5 -> _changeMapNewPermutations(map, collectMap, 5, 1, 5, listOfCollectMaps)
-            4 -> _changeMapNewPermutations(map, collectMap, 2, 2, 4, listOfCollectMaps)
-            3 -> _changeMapNewPermutations(map, collectMap, 3, 1, 3, listOfCollectMaps)
-            2 -> _changeMapNewPermutations(map, collectMap, 2, 1, 2, listOfCollectMaps)
-        }
-    } else {
-        listOfCollectMaps += collectMap.clone() as java.util.HashMap<Int, Int>
-    }
-}
-
-private fun _changeMapNewPermutations(map: HashMap<Int, Int>, collectMap: HashMap<Int, Int>, base: Int, power: Int, numberToExtract: Int, listOfCollectMaps: ArrayList<HashMap<Int, Int>>) {
-    if (numberToExtract in primesUnderTen) {
-        collectMap[base] = map.getOrDefault(base, 0)
-        map[base] = 0
-        collectMorePrimesToCollectMap(map, collectMap, numberToExtract - 1, listOfCollectMaps)
-        map[base] = collectMap.getOrDefault(base, 0)
-        collectMap.remove(base)
-    } else {
-        for (i in 0..(map.getOrDefault(base, 0) / power)) {
-            map.modify(base, -power * i)
-            collectMap[numberToExtract] = i
-            collectMorePrimesToCollectMap(map, collectMap, numberToExtract - 1, listOfCollectMaps)
-            map.modify(base, power * i)
-            collectMap.remove(numberToExtract)
-        }
-    }
 }
 
 operator fun BigInteger.rangeTo(other: BigInteger) = BigIntegerRange(this, other)
