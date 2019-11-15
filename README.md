@@ -1,4 +1,4 @@
-# Multiplicative-Persistence
+# Multiplicative persistence
 
 Just a project to self-teach the Kotlin language.
 Idea for this project came from a Numberphile video on Youtube: https://www.youtube.com/watch?v=Wim9WJeDTHQ
